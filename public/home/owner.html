@@ -1,0 +1,569 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Spoken owner page</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,300..800&family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,300;1,6..72,400&family=Zilla+Slab:wght@600;700&family=IBM+Plex+Mono:wght@400;500&family=Fraunces:opsz,wght@9..144,700&family=Anton&display=swap">
+<style>
+/* The owner's back room. One quiet column of what happened and what to do about it; the live site sits beside it so every action shows up where a customer would see it. */
+:root{
+  --night:#0E0F24; --night-2:#14152C; --night-3:#1C1D38; --plum:#3A2F45; --stone:#B9A99F; --mist:#EEE8E2; --spark:#FF5A3C; --ember:#C8301F;
+  --line:rgba(238,232,226,.1); --line-2:rgba(238,232,226,.18); --dim:rgba(238,232,226,.62);
+  --sans:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --voice:"Newsreader", Georgia, serif;
+  --mono:"IBM Plex Mono", ui-monospace, monospace;
+  --out:cubic-bezier(.16,1,.3,1);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--night); color:var(--mist); font-family:var(--sans); font-size:16px; line-height:1.6; font-variation-settings:"wdth" 100, "opsz" 16; -webkit-font-smoothing:antialiased;
+  background-image:radial-gradient(80% 50% at 85% -10%, rgba(58,47,69,.55), transparent 70%)}
+h1,h2,h3{margin:0; font-weight:650; letter-spacing:-0.01em; line-height:1.1; font-variation-settings:"wdth" 85, "opsz" 48; text-wrap:balance}
+p{margin:0}
+button,input{font:inherit; color:inherit}
+button{cursor:pointer}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--spark); outline-offset:3px; border-radius:4px}
+.voice{font-family:var(--voice); font-style:italic}
+.mono{font-family:var(--mono); font-size:12.5px; color:var(--stone); letter-spacing:0}
+.btn{display:inline-flex; align-items:center; gap:8px; border:1px solid var(--line-2); background:transparent; border-radius:999px; padding:9px 16px; font-weight:600; font-size:14px; white-space:nowrap; transition:background .2s, border-color .2s, color .2s}
+.btn:hover{border-color:var(--mist)}
+.btn.solid{background:var(--mist); color:var(--night); border-color:var(--mist)}
+.btn.solid:hover{background:#fff}
+.btn:disabled{opacity:.4; cursor:default}
+.btn.done{border-color:transparent; color:var(--stone); padding-left:0}
+.btn.done svg{color:var(--spark)}
+.link{background:none; border:0; padding:0; color:var(--stone); text-decoration:underline; text-underline-offset:3px; font-size:14px}
+.link:hover{color:var(--mist)}
+.wordmark{font-weight:800; font-size:22px; letter-spacing:-0.02em; text-decoration:none; display:inline-flex; gap:9px; align-items:center; font-variation-settings:"wdth" 75, "opsz" 48}
+.wordmark svg{width:22px; height:14px}
+
+/* ---------- 1. access gate ---------- */
+.gate{position:fixed; inset:0; z-index:40; display:grid; place-items:center; padding:24px; background:var(--night);
+  background-image:radial-gradient(60% 50% at 50% 0%, rgba(200,48,31,.14), transparent 70%); transition:opacity .7s var(--out), transform .9s var(--out)}
+.gate.gone{opacity:0; transform:translateY(-24px); pointer-events:none}
+.gate-in{width:min(420px,100%)}
+.gate .wordmark{margin-bottom:56px}
+.gate h1{font-size:clamp(34px,8vw,46px); font-variation-settings:"wdth" 80, "opsz" 72}
+.gate h1 span{display:block; color:var(--stone); font-weight:400; font-size:.5em; font-variation-settings:"wdth" 100, "opsz" 24; margin-bottom:10px; letter-spacing:0}
+.gate p.help{margin-top:12px; color:var(--dim); max-width:34ch}
+.code{display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:8px; margin-top:32px}
+.code input{width:100%; aspect-ratio:4/5; max-height:64px; text-align:center; font-family:var(--mono); font-size:24px; font-weight:500; text-transform:uppercase; background:var(--night-2); border:1px solid var(--line-2); border-radius:10px; caret-color:var(--spark); transition:border-color .2s, background .2s}
+.code input:focus{outline:none; border-color:var(--mist); background:var(--night-3)}
+.code.bad input{border-color:rgba(255,90,60,.7)}
+.code.bad{animation:shake .4s}
+@keyframes shake{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+.code input:disabled{opacity:.35}
+.gate-row{display:flex; justify-content:space-between; align-items:center; gap:16px; margin-top:20px; flex-wrap:wrap}
+.gate-msg{min-height:1.6em; margin-top:16px; font-size:15px; color:var(--dim)}
+.gate-msg.err{color:#FF8A70}
+.gate-msg.block{color:var(--mist)}
+.gate-msg.block b{display:block; font-weight:600; margin-bottom:4px}
+.proto-note{margin-top:44px; padding-top:16px; border-top:1px solid var(--line); font-size:13px; color:var(--stone); display:flex; gap:14px; flex-wrap:wrap}
+
+/* ---------- page ---------- */
+.top{display:flex; justify-content:space-between; align-items:center; gap:16px; padding:18px max(20px, env(safe-area-inset-left,0px)); border-bottom:1px solid var(--line)}
+.top-r{display:flex; align-items:center; gap:18px; font-size:14px; color:var(--stone)}
+main{display:grid; grid-template-columns:minmax(0,1fr) 360px; gap:64px; max-width:1180px; margin:0 auto; padding:48px max(20px, env(safe-area-inset-left,0px)) 64px}
+.col{min-width:0; max-width:680px}
+.head h1{font-size:clamp(40px,6vw,64px); font-variation-settings:"wdth" 78, "opsz" 72}
+.status{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:12px; color:var(--dim); font-size:15px}
+.status .dot{width:7px; height:7px; border-radius:50%; background:var(--spark); box-shadow:0 0 0 4px rgba(255,90,60,.15)}
+.status a{color:var(--mist); text-underline-offset:3px}
+
+.blk{margin-top:64px; padding-top:24px; border-top:1px solid var(--line)}
+.blk > header{display:flex; justify-content:space-between; align-items:baseline; gap:16px; flex-wrap:wrap; margin-bottom:20px}
+.blk h2{font-size:22px}
+.blk > header .mono{white-space:nowrap}
+
+/* reveal after unlock */
+.rv{opacity:0; transform:translateY(14px); transition:opacity .8s var(--out), transform 1s var(--out); transition-delay:calc(var(--i,0) * 90ms + 150ms)}
+body.open .rv{opacity:1; transform:none}
+
+/* ---------- 2. this week ---------- */
+.summary{font-family:var(--voice); font-style:italic; font-weight:300; font-size:clamp(22px,2.6vw,28px); line-height:1.38; letter-spacing:-0.005em; color:var(--mist); max-width:34ch}
+.summary.thinking{color:var(--stone)}
+.sum-meta{display:flex; gap:14px; align-items:center; margin-top:14px; flex-wrap:wrap}
+.insights{list-style:none; padding:0; margin:28px 0 0; counter-reset:ins}
+.insights li{display:grid; grid-template-columns:28px minmax(0,1fr) auto; gap:4px 14px; align-items:start; padding:18px 0; border-top:1px solid var(--line); counter-increment:ins}
+.insights li::before{content:counter(ins); font-family:var(--mono); font-size:12.5px; color:var(--spark); padding-top:3px}
+.insights p{color:var(--mist)}
+.insights .btn{align-self:center}
+.skel{display:block; height:14px; border-radius:7px; background:linear-gradient(90deg, var(--night-2), var(--night-3), var(--night-2)); background-size:200% 100%; animation:sk 1.2s linear infinite; margin:8px 0}
+@keyframes sk{to{background-position:-200% 0}}
+
+/* ---------- 3. inbox ---------- */
+.filters{display:flex; gap:6px; flex-wrap:wrap}
+.chip{border:1px solid var(--line-2); background:none; border-radius:999px; padding:5px 12px; font-size:13.5px; color:var(--dim)}
+.chip[aria-pressed="true"]{background:var(--mist); color:var(--night); border-color:var(--mist)}
+.chip span{font-family:var(--mono); font-size:12px; margin-left:4px; opacity:.7}
+.inbox{list-style:none; padding:0; margin:16px 0 0}
+.lead{border-top:1px solid var(--line)}
+.lead:last-child{border-bottom:1px solid var(--line)}
+.lead > button{display:grid; grid-template-columns:minmax(0,170px) minmax(0,1fr) auto; gap:4px 18px; width:100%; text-align:left; background:none; border:0; padding:16px 0; align-items:baseline}
+.lead .who b{font-weight:600}
+.lead .who .tag{display:block; font-size:13px; color:var(--stone)}
+.lead .tag i{display:inline-block; width:6px; height:6px; border-radius:50%; margin-right:6px; vertical-align:1px; background:var(--stone)}
+.lead .tag.Order i{background:var(--spark)} .lead .tag.Booking i{background:#E7B07A} .lead .tag.Question i{background:var(--mist)}
+.lead .txt{color:var(--dim); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.lead.unread .txt{color:var(--mist)}
+.lead.unread .who b::after{content:""; display:inline-block; width:6px; height:6px; border-radius:50%; background:var(--spark); margin-left:8px; vertical-align:2px}
+.lead .detail{display:none; padding:0 0 20px 188px}
+.lead.open .detail{display:block}
+.lead.open .txt{visibility:hidden}
+.detail q{display:block; font-family:var(--voice); font-style:italic; font-size:19px; line-height:1.45; quotes:"“" "”"; max-width:52ch}
+.detail .reply{margin-top:12px; display:flex; gap:12px; align-items:center; flex-wrap:wrap; font-size:14px; color:var(--stone)}
+.detail .reply code{font-family:var(--mono); color:var(--mist); user-select:all}
+.empty{padding:36px 0; border-top:1px solid var(--line); border-bottom:1px solid var(--line); color:var(--dim)}
+.empty b{display:block; color:var(--mist); font-weight:600; margin-bottom:4px}
+
+/* ---------- 4. health ---------- */
+.meter{height:2px; background:var(--line); margin-bottom:8px; position:relative; overflow:hidden; border-radius:2px}
+.meter i{position:absolute; left:0; top:0; bottom:0; background:var(--spark); transition:width .8s var(--out)}
+.checks{list-style:none; padding:0; margin:0}
+.checks > li{border-bottom:1px solid var(--line); padding:14px 0}
+.ck{display:grid; grid-template-columns:22px minmax(0,1fr) auto; gap:14px; align-items:center}
+.ck svg{width:18px; height:18px}
+.ck .t b{font-weight:600}
+.ck .t span{display:block; font-size:14px; color:var(--stone)}
+.ck.ok .t b{color:var(--dim); font-weight:500}
+.fix{display:none; margin:14px 0 4px 36px; gap:8px; align-items:center}
+.checks > li.fixing .fix{display:flex}
+.fix input[type=text]{flex:1; min-width:0; background:var(--night-2); border:1px solid var(--line-2); border-radius:999px; padding:10px 16px; font-size:15px}
+.fix input:focus{outline:none; border-color:var(--mist)}
+.mic{flex:none; width:40px; height:40px; border-radius:50%; border:0; background:var(--ember); color:#fff; display:grid; place-items:center; touch-action:none}
+.mic svg{width:18px; height:18px}
+.mic.on{box-shadow:0 0 0 6px rgba(255,90,60,.2); animation:pulse 1s infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 10px rgba(255,90,60,.08)}}
+
+/* ---------- 5. history ---------- */
+.hist{list-style:none; padding:0; margin:0; position:relative}
+.hist li{display:grid; grid-template-columns:14px minmax(0,1fr) auto; gap:4px 16px; align-items:baseline; padding:12px 0; position:relative}
+.hist li::before{content:""; width:7px; height:7px; border-radius:50%; background:var(--night); box-shadow:0 0 0 1.5px var(--stone); margin-left:3px; transform:translateY(-2px)}
+.hist li:first-child::before{background:var(--spark); box-shadow:0 0 0 1.5px var(--spark)}
+.hist::before{content:""; position:absolute; left:6px; top:22px; bottom:22px; width:1px; background:var(--line-2)}
+.hist b{font-weight:500}
+.hist .src{display:block; font-size:13.5px; color:var(--stone)}
+.hist .src em{font-style:normal; color:var(--dim)}
+.hist li.undone b{text-decoration:line-through; color:var(--stone)}
+.hist li.new{animation:in .6s var(--out)}
+@keyframes in{from{opacity:0; transform:translateY(-6px)}}
+
+/* ---------- 6. the live site, pinned ---------- */
+aside{position:sticky; top:24px; align-self:start}
+.phone,.aside-cap{opacity:0; transition:opacity 1s .35s var(--out)}
+body.open .phone, body.open .aside-cap{opacity:1}
+.sheet-handle{display:none}
+.phone{border-radius:40px; padding:10px; background:#06060F; box-shadow:0 0 0 1px rgba(255,255,255,.08), 0 50px 80px -40px rgba(0,0,0,.9), 0 0 80px -30px rgba(255,170,130,.25)}
+.screen{position:relative; border-radius:31px; overflow:hidden; height:min(700px, calc(100vh - 120px)); overflow-y:auto; overscroll-behavior:contain; scrollbar-width:none}
+.screen::-webkit-scrollbar{display:none}
+.pv-bar{position:sticky; top:0; z-index:2; display:flex; justify-content:space-between; padding:10px 18px 8px; font-size:11px; font-family:var(--mono); background:inherit}
+.pill{position:absolute; top:36px; left:50%; z-index:3; transform:translate(-50%,-8px); background:var(--ember); color:#fff; font-size:12px; font-weight:600; padding:4px 12px; border-radius:999px; opacity:0; transition:opacity .3s, transform .4s var(--out); pointer-events:none; white-space:nowrap}
+.pill.on{opacity:1; transform:translate(-50%,0)}
+.aside-cap{margin-top:14px; text-align:center; font-size:13.5px; color:var(--stone)}
+
+/* the shop's site, in its own theme */
+.site{padding:16px 20px 28px; font-family:var(--sans)}
+.site [data-f]{transition:background .5s, box-shadow .5s; border-radius:3px}
+.site .flash{background:rgba(255,90,60,.22) !important; box-shadow:0 0 0 6px rgba(255,90,60,.22)}
+.site .nm{font-size:38px; line-height:.95}
+.site .tl{margin-top:8px}
+.site .ab{margin-top:14px; font-size:14px; line-height:1.5}
+.site .ph{margin-top:16px; aspect-ratio:4/3; border-radius:4px; background-size:cover; background-position:center}
+.site h4{margin:24px 0 10px; font-size:17px}
+.site .row{display:flex; justify-content:space-between; gap:12px; padding:9px 0; font-size:14px}
+.site .row small{display:block; font-size:12px; opacity:.7}
+.site .hr{display:inline-block; font-size:13px; line-height:1.5; white-space:pre-line}
+.site .loc{margin-top:12px; font-size:14px}
+.site .cta{display:block; margin-top:22px; text-align:center; padding:12px; font-weight:600; font-size:14px; text-decoration:none}
+.site .made{margin-top:22px; font-size:11px; text-align:center; opacity:.55}
+.th-craft{background:#EADFCB; color:#2B2118}
+.th-craft .nm{font-family:"Zilla Slab", serif; font-weight:700}
+.th-craft .tl{font-family:var(--voice); font-style:italic; color:#6A5847}
+.th-craft h4{font-family:"Zilla Slab", serif; border-top:2px dashed rgba(43,33,24,.3); padding-top:14px}
+.th-craft .row{background:#F7F1E3; padding:9px 12px; margin-bottom:8px; transform:rotate(-0.7deg); clip-path:polygon(9px 0,100% 0,100% 100%,0 100%,0 9px)}
+.th-craft .row:nth-child(even){transform:rotate(0.6deg)}
+.th-craft .row b{font-family:var(--mono); color:#9A3B14; font-weight:500}
+.th-craft .hr{border:3px double #9A3B14; color:#9A3B14; padding:8px 12px; transform:rotate(-2deg); font-family:var(--mono)}
+.th-craft .cta{background:#9A3B14; color:#fff; box-shadow:3px 3px 0 #2B2118}
+.th-editorial{background:#F4EFE6; color:#1C1A17}
+.th-editorial .nm{font-family:"Fraunces", serif; border-top:2px solid; border-bottom:2px solid; padding:8px 0}
+.th-editorial .tl{font-family:var(--voice); font-style:italic; color:#6B6359}
+.th-editorial .row{border-bottom:1px dotted #B9AF9F} .th-editorial .row b{font-family:"Fraunces", serif; color:#8A2A1F}
+.th-editorial .cta{background:#1C1A17; color:#F4EFE6}
+.th-zine{background:#F3F0E8; color:#121212}
+.th-zine .nm{font-family:"Fraunces", serif; background:#121212; color:#F3F0E8; display:inline-block; padding:4px 10px; transform:rotate(-2deg)}
+.th-zine .tl{display:inline-block; background:#C2125F; color:#fff; padding:2px 8px; transform:rotate(1deg)}
+.th-zine .row b{color:#C2125F} .th-zine .cta{background:#C2125F; color:#fff}
+.th-minimal{background:#FAFAF8; color:#18181B}
+.th-minimal .nm{font-weight:500; letter-spacing:-0.03em}
+.th-minimal .tl{color:#6B6B70} .th-minimal .row{border-top:1px solid #E4E4E0} .th-minimal .row b{color:#0F5E5A; font-weight:500}
+.th-minimal .cta{border:1px solid #18181B; color:#18181B}
+.th-bold{background:#111014; color:#F2F0EA}
+.th-bold .nm{font-family:"Anton", sans-serif; font-weight:400; text-transform:uppercase; font-size:46px}
+.th-bold .tl{display:inline-block; background:#E8FF3A; color:#111014; padding:2px 8px; font-weight:600}
+.th-bold .row{border-bottom:1px solid rgba(232,255,58,.25)} .th-bold .row b{font-family:"Anton", sans-serif; font-weight:400; color:#E8FF3A; font-size:18px}
+.th-bold .cta{background:#E8FF3A; color:#111014}
+
+footer.pf{max-width:1180px; margin:0 auto; padding:24px max(20px, env(safe-area-inset-left,0px)) 96px; border-top:1px solid var(--line); display:flex; gap:16px; flex-wrap:wrap; justify-content:space-between; font-size:13px; color:var(--stone)}
+footer.pf .ctrls{display:flex; gap:14px; flex-wrap:wrap}
+
+/* ---------- mobile: one column, the site lives in a slide-up sheet ---------- */
+.back{display:inline-block; font-size:14px; color:var(--stone,#a8a29a); text-decoration:none; margin:0 18px 0 0}
+.back:hover{color:var(--mist); text-decoration:underline}
+.gate-in > .back{margin:0 0 28px}
+.gate-demo{margin-top:22px; display:flex; gap:10px; align-items:baseline; flex-wrap:wrap}
+.demo-note{display:block; margin-top:6px}
+@media (max-width: 900px){
+  main{grid-template-columns:1fr; gap:0; padding-top:32px}
+  .blk{margin-top:48px}
+  aside{position:fixed; left:0; right:0; bottom:0; z-index:30; top:auto; padding:0 12px; transform:translateY(calc(100% - 64px - env(safe-area-inset-bottom,0px))); transition:transform .55s var(--out)}
+  aside.up{transform:none}
+  .sheet-handle{display:flex; width:100%; justify-content:space-between; align-items:center; gap:12px; height:64px; padding:0 18px; border:0; border-radius:20px 20px 0 0; background:var(--night-3); box-shadow:0 -1px 0 var(--line-2), 0 -20px 40px rgba(0,0,0,.4); text-align:left}
+  .sheet-handle b{font-weight:600}
+  .sheet-handle .mono{display:block}
+  .sheet-handle .grab{width:36px; height:4px; border-radius:2px; background:var(--line-2); position:absolute; top:8px; left:50%; transform:translateX(-50%)}
+  .sheet-body{background:var(--night-3); padding:4px 8px 16px}
+  .phone{border-radius:28px; padding:6px; box-shadow:none}
+  .screen{border-radius:23px; height:calc(86vh - 120px)}
+  .aside-cap{display:none}
+  .scrim-m{position:fixed; inset:0; z-index:29; background:rgba(6,6,18,.55); opacity:0; pointer-events:none; transition:opacity .4s}
+  .scrim-m.on{opacity:1; pointer-events:auto}
+  footer.pf{padding-bottom:120px}
+}
+@media (max-width: 600px){
+  .top .mono.hide-s{display:none}
+  .insights li{grid-template-columns:22px minmax(0,1fr)}
+  .insights .btn{grid-column:2; justify-self:start; margin-top:10px}
+  .lead > button{grid-template-columns:minmax(0,1fr) auto}
+  .lead .txt{grid-column:1 / -1; grid-row:2}
+  .lead .detail{padding-left:0}
+  .lead.open .txt{display:none}
+  .fix{margin-left:0}
+  .ck{grid-template-columns:20px minmax(0,1fr)}
+  .ck .btn{grid-column:2; justify-self:start; margin-top:8px}
+}
+@media (prefers-reduced-motion: reduce){
+  .rv,.gate,aside,.meter i,.pill{transition:none} .rv{transform:none} .code.bad,.skel,.mic.on,.hist li.new{animation:none}
+}
+</style>
+</head>
+<body>
+
+<!-- 1. ACCESS GATE -->
+<div class="gate" id="gate" role="dialog" aria-modal="true" aria-labelledby="g-h">
+  <div class="gate-in">
+    <a class="back" href="/">← Back to the street</a>
+    <a class="wordmark" href="/"><svg viewBox="0 0 22 14" aria-hidden="true"><g fill="#FF5A3C"><rect x="0" y="5" width="2.4" height="4" rx="1.2"/><rect x="4" y="2" width="2.4" height="10" rx="1.2"/><rect x="8" y="0" width="2.4" height="14" rx="1.2"/><rect x="12" y="3" width="2.4" height="8" rx="1.2"/><rect x="16" y="5.5" width="2.4" height="3" rx="1.2"/></g></svg>Spoken</a>
+    <h1 id="g-h"><span id="g-shop">Your page</span>Enter your edit code</h1>
+    <p class="help">This is the six-character edit code you got when your site went live, on the website or in your first WhatsApp reply. It is the key that lets only you change your site, see your customers’ messages and get suggestions.</p>
+    <form id="gform" autocomplete="off" novalidate>
+      <label class="mono" for="gslug" style="display:block;margin:0 0 6px;text-align:left">Your site’s name in the address (the part after /s/)</label>
+      <input id="gslug" type="text" inputmode="url" autocapitalize="none" spellcheck="false" placeholder="your-site-name" style="width:100%;margin:0 0 18px;padding:12px 14px;border-radius:10px;border:1px solid var(--line-2,rgba(255,255,255,.2));background:transparent;color:inherit;font:inherit">
+      <div class="code" id="code" role="group" aria-label="Edit code, 6 characters">
+        <input inputmode="text" maxlength="1" aria-label="Character 1 of 6"><input inputmode="text" maxlength="1" aria-label="Character 2 of 6"><input inputmode="text" maxlength="1" aria-label="Character 3 of 6"><input inputmode="text" maxlength="1" aria-label="Character 4 of 6"><input inputmode="text" maxlength="1" aria-label="Character 5 of 6"><input inputmode="text" maxlength="1" aria-label="Character 6 of 6">
+      </div>
+      <div class="gate-msg" id="gmsg" role="status" aria-live="polite"></div>
+      <div class="gate-row"><button class="btn solid" id="gbtn" type="submit" disabled>Open my page</button><span class="mono" id="gtries"></span></div>
+      <div class="gate-demo"><span class="mono">No code yet?</span><button class="link" id="gdemo" type="button">See the owner page for a sample bakery</button></div>
+    </form>
+    
+  </div>
+</div>
+
+<header class="top">
+  <a class="wordmark" href="/"><svg viewBox="0 0 22 14" aria-hidden="true"><g fill="#FF5A3C"><rect x="0" y="5" width="2.4" height="4" rx="1.2"/><rect x="4" y="2" width="2.4" height="10" rx="1.2"/><rect x="8" y="0" width="2.4" height="14" rx="1.2"/><rect x="12" y="3" width="2.4" height="8" rx="1.2"/><rect x="16" y="5.5" width="2.4" height="3" rx="1.2"/></g></svg>Spoken</a>
+  <div class="top-r"><a class="back" href="/">← Back to the street</a><span class="mono hide-s">Edit code ••••••</span><button class="link" id="lock" type="button">Lock</button></div>
+</header>
+
+<main id="main" inert>
+  <div class="col">
+    <div class="head rv" style="--i:0">
+      <h1 id="h-name">…</h1>
+      <p class="status"><span class="dot" aria-hidden="true"></span>Live at <a href="#" id="h-url">…</a><span class="mono" id="h-from"></span></p>
+    </div>
+
+    <!-- 2. THIS WEEK -->
+    <section class="blk rv" style="--i:1" aria-labelledby="h-week">
+      <header><h2 id="h-week">This week, in plain words</h2><span class="mono" id="sum-src"></span></header>
+      <p class="summary" id="summary"></p>
+      <div class="sum-meta"><button class="link" id="refresh" type="button">Read the messages again</button></div>
+      <ol class="insights" id="insights" aria-label="Three things to do"></ol>
+    </section>
+
+    <!-- 3. INBOX -->
+    <section class="blk rv" style="--i:2" aria-labelledby="h-inbox">
+      <header><h2 id="h-inbox">Messages from your site</h2><div class="filters" id="filters" role="group" aria-label="Filter messages"></div></header>
+      <div id="inboxwrap"></div>
+    </section>
+
+    <!-- 4. HEALTH -->
+    <section class="blk rv" style="--i:3" aria-labelledby="h-health">
+      <header><h2 id="h-health">What your site is missing</h2><span class="mono" id="health-n"></span></header>
+      <div class="meter" aria-hidden="true"><i id="meter"></i></div>
+      <ul class="checks" id="checks"></ul>
+    </section>
+
+    <!-- 5. HISTORY -->
+    <section class="blk rv" style="--i:4" aria-labelledby="h-hist">
+      <header><h2 id="h-hist">Every change</h2><span class="mono">newest first</span></header>
+      <ol class="hist" id="hist"></ol>
+    </section>
+  </div>
+
+  <!-- 6. LIVE SITE -->
+  <aside id="aside" aria-label="Your live site">
+    <button class="sheet-handle" id="handle" type="button" aria-expanded="false" aria-controls="sheetbody"><span class="grab" aria-hidden="true"></span><span><b>Your live site</b><span class="mono" id="handle-sub"></span></span><span class="mono" id="handle-act">Open</span></button>
+    <div class="sheet-body" id="sheetbody">
+      <div class="phone"><div class="screen" id="screen"><span class="pill" id="pill">Updated just now</span><div id="pv"></div></div></div>
+      <p class="aside-cap">What customers see right now</p>
+    </div>
+  </aside>
+</main>
+<div class="scrim-m" id="scrimm"></div>
+
+<footer class="pf"><span>Spoken owner page</span><span class="ctrls"><a class="link" href="/">Back to Spoken</a></span></footer>
+
+<script>
+(()=>{
+const $=id=>document.getElementById(id);
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const mobileQ=matchMedia('(max-width: 900px)');
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const store={ get(k){ try{ return sessionStorage.getItem(k); }catch(e){ return null; } }, set(k,v){ try{ sessionStorage.setItem(k,v); }catch(e){} }, del(k){ try{ sessionStorage.removeItem(k); }catch(e){} } };
+
+/* ============ data: comes from the ownerAccess function, which checks the edit code on the server ============ */
+let NOW=new Date();
+let biz=null, leads=[], changes=[], insightsData=null, filter='All', session={slug:'', code:''};
+const SOURCE={whatsapp:'WhatsApp message', web_mic:'Voice note on the website', insight:'Insight button', typed_note:'Typed note', owner_page:'This page', undo:'Undo'};
+async function api(action, extra={}){
+  try{
+    const r=await fetch('/functions/ownerAccess',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({slug:session.slug, code:session.code, action, ...extra})});
+    const d=await r.json().catch(()=>null);
+    return d||{ok:false,message:'Something went wrong. Please try again.'};
+  }catch(e){ return {ok:false,message:'No connection. Please try again.'}; }
+}
+function toast(msg){ const p=$('pill'); p.textContent=msg; p.classList.add('on'); clearTimeout(toast.t); toast.t=setTimeout(()=>{ p.classList.remove('on'); p.textContent='Updated just now'; },2800); const open=mobileQ.matches && !$('aside').classList.contains('up'); if(open) setSheet(true); }
+
+/* ============ the one place the site changes: the server validates, applies and logs ============ */
+const THEMES=['editorial','bold','craft','minimal','zine'];
+// button labels come from the action, never from the model, so a button can't promise something it won't do
+function labelFor(a){
+  switch(a.type){
+    case 'add_service': return `Add ${a.value.name.replace(/^[A-Z](?=[a-z])/,c=>c.toLowerCase())} to your site`;
+    case 'edit_service_price': return `Set ${a.value.name} to ${a.value.price}`;
+    case 'set_hours': return /closed/i.test(a.value)?'Say when you’re closed':'Update your hours';
+    case 'set_tagline': return 'Use this as your tagline';
+    case 'set_theme': return `Switch to the ${a.value} design`;
+  }
+  return 'Apply';
+}
+function isDone(a){
+  const v=a.value; if(!biz) return false;
+  switch(a.type){
+    case 'add_service': return biz.services.some(x=>x.name.toLowerCase()===String(v.name).toLowerCase());
+    case 'edit_service_price': return biz.services.some(x=>x.name===v.name && x.price===v.price);
+    case 'set_hours': return biz.hours===v; case 'set_tagline': return biz.tagline===v; case 'set_theme': return biz.theme===v;
+  }
+  return false;
+}
+async function apply(a, source, meta={}){
+  const r=await api('apply',{act:a, source, insight_id:meta.insightId||''});
+  if(!r.ok){ toast(r.message||'That didn’t work. Try again.'); return null; }
+  biz=r.business; changes=r.changes; NOW=new Date(); renderAll(a.field, true); return r;
+}
+const undoable=()=>{ const c=changes[0]; return c && !c.undone && c.can_undo ? c : null; };
+async function undo(){
+  const ch=undoable(); if(!ch) return;
+  const r=await api('undo'); if(!r.ok){ toast(r.message||'Nothing to undo.'); return; }
+  biz=r.business; changes=r.changes; renderAll(ch.field, true);
+}
+
+/* ============ render ============ */
+const SVG={check:'<svg viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M4 9.5l3.2 3.2L14 5.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  gap:'<svg viewBox="0 0 18 18" fill="none" aria-hidden="true"><circle cx="9" cy="9" r="7.2" stroke="#FF5A3C" stroke-width="1.5" stroke-dasharray="2.6 2.6"/></svg>',
+  ok:'<svg viewBox="0 0 18 18" fill="none" aria-hidden="true"><circle cx="9" cy="9" r="7.2" stroke="rgba(238,232,226,.35)" stroke-width="1.5"/><path d="M5.6 9.3l2.3 2.3 4.4-4.6" stroke="#EEE8E2" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  mic:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>'};
+
+function renderPreview(){
+  const b=biz;
+  $('pv').innerHTML=`<div class="th-${b.theme}" id="pvsite"><div class="pv-bar"><span>9:41</span><span>/s/${esc(b.slug)}</span></div><div class="site">
+    <h3 class="nm" data-f="business_name">${esc(b.business_name)}</h3>
+    <p class="tl" data-f="tagline">${esc(b.tagline)}</p>
+    ${b.photo_url?`<div class="ph" data-f="photo_url" style="background-image:url('${b.photo_url}')" role="img" aria-label="Photo of the shop"></div>`:''}
+    <p class="ab">${esc(b.about)}</p>
+    <h4>On the counter</h4>
+    <div data-f="services">${b.services.map(s=>`<div class="row"><span>${esc(s.name)}${s.description?`<small>${esc(s.description)}</small>`:''}</span><b>${esc(s.price)}</b></div>`).join('')}</div>
+    <h4>Visit</h4>
+    <div class="hr" data-f="hours">${esc(b.hours)}</div>
+    <p class="loc">${esc(b.location)}</p>
+    ${b.phone_or_contact?`<p class="loc" data-f="phone_or_contact">${esc(b.phone_or_contact)}</p>`:''}
+    <a class="cta" href="#" tabindex="-1">Message us</a>
+    <p class="made">Made with a voice note</p></div></div>`;
+  $('screen').style.background=getComputedStyle($('pvsite')).backgroundColor;
+}
+function flash(field){
+  const open=mobileQ.matches && !$('aside').classList.contains('up');
+  if(open) setSheet(true);
+  setTimeout(()=>{
+    let el=$('pv').querySelector(`[data-f="${field}"]`); if(field==='theme') el=$('pv').querySelector('.nm');
+    if(field==='services' && el && el.lastElementChild) el=el.lastElementChild;
+    const scr=$('screen');
+    if(el){ scr.scrollTo({top:Math.max(0, el.offsetTop-scr.clientHeight/2+el.offsetHeight/2), behavior:reduce?'auto':'smooth'}); el.classList.add('flash'); setTimeout(()=>el.classList.remove('flash'),1800); }
+    const p=$('pill'); p.classList.add('on'); clearTimeout(flash.t); flash.t=setTimeout(()=>p.classList.remove('on'),2400);
+    $('handle-sub').textContent='Updated just now';
+  }, open?450:60);
+}
+
+function renderInsights(state){
+  const ul=$('insights');
+  if(state==='thinking'||!insightsData){ $('summary').classList.add('thinking'); $('summary').textContent='Reading this week’s messages…'; ul.innerHTML=[1,2,3].map(()=>'<li><span></span><div><span class="skel" style="width:92%"></span><span class="skel" style="width:60%"></span></div></li>').join(''); return; }
+  const data=insightsData;
+  $('summary').classList.remove('thinking'); $('summary').textContent=data.summary;
+  $('sum-src').textContent=leads.length?`from ${leads.length} message${leads.length===1?'':'s'}`:'';
+  ul.innerHTML=data.insights.map(i=>{
+    const done=isDone(i.action);
+    return `<li><p>${esc(i.text)}</p><button class="btn${done?' done':''}" data-ins="${esc(i.id)}" ${done?'disabled':''}>${done?SVG.check+'On your site':esc(labelFor(i.action))}</button></li>`; }).join('');
+  ul.querySelectorAll('[data-ins]').forEach(btn=>btn.addEventListener('click',async()=>{
+    const i=data.insights.find(x=>x.id===btn.dataset.ins); if(!i||isDone(i.action)) return;
+    btn.disabled=true; const r=await apply(i.action,'insight',{insightId:i.id}); if(!r) btn.disabled=false;
+  }));
+}
+
+function tagOf(m){
+  const t=m.toLowerCase();
+  if(/\b(book|booking|reserve|table for|appointment)\b/.test(t)) return 'Booking';
+  if(/\b(orders?|ordering|make (a|me|us)|pick ?up|buy|cakes?)\b/.test(t)) return 'Order';
+  if(/\?/.test(t) || /^(do|does|are|is|can|could|what|when|how|which)\b/.test(t)) return 'Question';
+  return 'Other';
+}
+function when(iso){ const d=new Date(iso), diff=Math.floor((NOW-d)/864e5);
+  const hm=d.toLocaleTimeString('en-US',{hour:'numeric', minute:'2-digit'});
+  if(diff<=0 && d.getDate()===NOW.getDate()) return 'Today '+hm; if(diff<=1) return 'Yesterday';
+  if(diff<7) return d.toLocaleDateString('en-US',{weekday:'short'});
+  return d.toLocaleDateString('en-US',{month:'short', day:'numeric'}); }
+const seen=(()=>{ let k='spoken_seen_'; try{ return { has:id=>(JSON.parse(localStorage.getItem(k+session.slug)||'[]')).includes(id), add:id=>{ const a=JSON.parse(localStorage.getItem(k+session.slug)||'[]'); if(!a.includes(id)){ a.push(id); localStorage.setItem(k+session.slug,JSON.stringify(a.slice(-200))); } } }; }catch(e){ return {has:()=>false, add:()=>{}}; } })();
+function renderInbox(){
+  const list=leads.map(l=>({...l, contact:l.contact||'', tag:tagOf(l.message), unread:!seen.has(l.id)}));
+  const tags=['All','Order','Question','Booking','Other'];
+  $('filters').innerHTML=list.length?tags.map(t=>{ const n=t==='All'?list.length:list.filter(l=>l.tag===t).length; return `<button class="chip" aria-pressed="${filter===t}" data-t="${t}">${t}<span>${n}</span></button>`; }).join(''):'';
+  $('filters').querySelectorAll('.chip').forEach(c=>c.addEventListener('click',()=>{ filter=c.dataset.t; renderInbox(); }));
+  const shown=list.filter(l=>filter==='All'||l.tag===filter);
+  if(!list.length){ $('inboxwrap').innerHTML='<div class="empty"><b>No messages yet.</b>When someone presses “Message us” on your site, it lands here.</div>'; return; }
+  if(!shown.length){ $('inboxwrap').innerHTML=`<div class="empty"><b>Nothing tagged ${filter.toLowerCase()} yet.</b><button class="link" type="button" id="showall">Show all messages</button></div>`; $('showall').onclick=()=>{ filter='All'; renderInbox(); }; return; }
+  const reply=l=>{ const c=l.contact.trim(); if(!c) return ''; const mail=c.includes('@'); return `<div class="reply">Reply to <code>${esc(c)}</code><a class="btn" href="${mail?'mailto:':'tel:'}${esc(c.replace(/\s/g,''))}">${mail?'Write back':'Call'}</a></div>`; };
+  $('inboxwrap').innerHTML=`<ul class="inbox">${shown.map(l=>`<li class="lead${l.unread?' unread':''}" data-id="${esc(l.id)}"><button type="button" aria-expanded="false"><span class="who"><b>${esc(l.name||'Someone')}</b><span class="tag ${l.tag}"><i></i>${l.tag}</span></span><span class="txt">${esc(l.message)}</span><span class="mono">${when(l.created_date)}</span></button>
+    <div class="detail"><q>${esc(l.message)}</q>${reply(l)}</div></li>`).join('')}</ul>`;
+  $('inboxwrap').querySelectorAll('.lead > button').forEach(b=>b.addEventListener('click',()=>{ const li=b.parentElement, o=li.classList.toggle('open'); b.setAttribute('aria-expanded',o); li.classList.remove('unread'); seen.add(li.dataset.id); }));
+}
+
+const CHECKS=[
+  {id:'hours', b:'Opening hours', ok:()=>!!biz.hours.trim(), okS:()=>biz.hours.replace(/\n/g,', '), s:'Customers can’t tell when to come.', ph:'Type it: “Open Monday to Saturday, 6 till 2”', act:v=>({type:'set_hours', field:'hours', value:v})},
+  {id:'contact', b:'A way to reach you', ok:()=>!!biz.phone_or_contact.trim(), okS:()=>biz.phone_or_contact, s:'Only the contact form so far. Add a phone or email.', ph:'Type it: “Call us on 718 555 0100”', act:v=>({type:'set_contact', field:'phone_or_contact', value:v})},
+  {id:'services', b:'At least 3 things you sell', ok:()=>biz.services.length>=3, okS:()=>`${biz.services.length} on your site.`, s:'A short list looks unfinished.', ph:'Type it: “Almond croissant, $4.50”', act:v=>{ const m=v.match(/^(.*?)[,\s]+([$€£₹]?\s?\d+(?:[.,]\d{1,2})?)\s*$/); return m&&m[1].trim()?{type:'add_service', field:'services', value:{name:m[1].trim(), price:m[2].replace(/\s/g,'')}}:null; }},
+  {id:'tagline', b:'A tagline', ok:()=>!!biz.tagline.trim(), okS:()=>`“${biz.tagline}”`, s:'One line that says why you’re worth the walk.', ph:'Type it: “Baked before sunrise”', act:v=>({type:'set_tagline', field:'tagline', value:v})},
+];
+let fixing=null;
+function renderHealth(){
+  const n=CHECKS.filter(c=>c.ok()).length;
+  $('health-n').textContent=`${n} of ${CHECKS.length} done`; $('meter').style.width=(n/CHECKS.length*100)+'%';
+  $('checks').innerHTML=CHECKS.map(c=>{ const ok=c.ok(); return `<li class="${fixing===c.id?'fixing':''}" data-c="${c.id}"><div class="ck${ok?' ok':''}">${ok?SVG.ok:SVG.gap}<div class="t"><b>${c.b}</b><span>${esc(ok?c.okS():c.s)}</span></div>${ok?'':`<button class="btn" type="button" data-fix="${c.id}">Fix with a note</button>`}</div>
+    ${ok?'':`<form class="fix" data-form="${c.id}"><input type="text" aria-label="${c.b}" maxlength="140" placeholder="${esc(c.ph)}"><button class="btn solid" type="submit">Save</button></form>`}</li>`; }).join('');
+  $('checks').querySelectorAll('[data-fix]').forEach(b=>b.addEventListener('click',()=>{
+    const c=CHECKS.find(x=>x.id===b.dataset.fix);
+    fixing=fixing===c.id?null:c.id; renderHealth(); const inp=$('checks').querySelector(`[data-form="${c.id}"] input`); if(inp) inp.focus(); }));
+  $('checks').querySelectorAll('.fix').forEach(f=>{
+    const c=CHECKS.find(x=>x.id===f.dataset.form), inp=f.querySelector('input');
+    f.addEventListener('submit',async e=>{ e.preventDefault(); const v=inp.value.trim(); if(!v){ inp.focus(); return; }
+      const a=c.act(v); if(!a){ inp.value=''; inp.placeholder='Try “Name, $price”'; return; }
+      fixing=null; await apply(a,'typed_note'); });
+  });
+}
+
+function renderHistory(fresh){
+  const latest=undoable();
+  const rows=[...changes, {id:'created', field:'*', label:'Site created', source:(biz.source==='whatsapp'?'whatsapp':'web_mic'), created_date:biz.created_date, undone:false}];
+  $('hist').innerHTML=rows.map((c,k)=>`<li class="${c.undone?'undone':''}${fresh&&k===0?' new':''}"><span><b>${esc(c.label)}</b><span class="src">${SOURCE[c.source]||esc(c.source||'')} · <em>${Math.abs(Date.now()-new Date(c.created_date))<6e4?'just now':when(c.created_date)}</em>${c.undone?' · undone':''}</span></span>${latest&&c.id===latest.id?'<button class="link" type="button" id="undo">Undo</button>':''}</li>`).join('');
+  const u=$('undo'); if(u) u.addEventListener('click',undo);
+}
+
+function renderAll(changed, fresh){
+  if(!biz) return;
+  renderPreview(); renderInsights(); renderHealth(); renderHistory(fresh); renderInbox();
+  $('h-name').textContent=biz.business_name; document.title=biz.business_name+' · Spoken owner page';
+  const u=$('h-url'); u.textContent=location.host+'/s/'+biz.slug; u.href='/s/'+biz.slug; u.target='_blank';
+  $('h-from').textContent=biz.slug==='rosa-demo'?'sample bakery · resets every time you open it':(biz.source==='whatsapp'?'opened from a WhatsApp message':'opened from a voice note on the website');
+  $('handle-sub').textContent='/s/'+biz.slug;
+  if(changed) flash(changed);
+}
+
+/* ============ 1. gate ============ */
+const boxes=[...document.querySelectorAll('#code input')];
+const qs=new URLSearchParams(location.search);
+const slugIn=$('gslug');
+slugIn.value=(qs.get('s')||qs.get('slug')||store.get('spoken_slug')||'').toLowerCase();
+function gateState(){ $('gbtn').disabled=boxes.some(b=>!b.value)||!slugIn.value.trim(); }
+boxes.forEach((b,i)=>{
+  b.addEventListener('input',()=>{ b.value=b.value.replace(/[^a-z0-9]/gi,'').slice(-1).toUpperCase(); if(b.value && boxes[i+1]) boxes[i+1].focus(); $('code').classList.remove('bad'); if($('gmsg').classList.contains('err')){ $('gmsg').className='gate-msg'; $('gmsg').textContent=''; } gateState(); });
+  b.addEventListener('keydown',e=>{ if(e.key==='Backspace' && !b.value && boxes[i-1]){ boxes[i-1].focus(); boxes[i-1].value=''; gateState(); } if(e.key==='ArrowLeft'&&boxes[i-1]) boxes[i-1].focus(); if(e.key==='ArrowRight'&&boxes[i+1]) boxes[i+1].focus(); });
+  b.addEventListener('paste',e=>{ e.preventDefault(); const t=(e.clipboardData.getData('text')||'').replace(/[^a-z0-9]/gi,'').toUpperCase().slice(0,6); [...t].forEach((c,k)=>{ if(boxes[k]) boxes[k].value=c; }); (boxes[Math.min(t.length,5)]).focus(); gateState(); });
+});
+slugIn.addEventListener('input',gateState);
+async function openWith(slug, code, quiet){
+  session={slug, code};
+  const r=await api('open');
+  if(!r.ok){ session={slug:'',code:''}; return r; }
+  biz=r.business; leads=r.leads; changes=r.changes; insightsData=r.insights; NOW=new Date();
+  store.set('spoken_slug',slug); store.set('spoken_code',code);
+  $('gate').classList.add('gone'); $('main').inert=false; renderAll();
+  requestAnimationFrame(()=>document.body.classList.add('open'));
+  setTimeout(()=>$('gate').hidden=true, quiet?0:900);
+  // the weekly summary: shown from cache at once, then refreshed if new messages arrived
+  api('insights').then(x=>{ if(x.ok){ insightsData=x.insights; renderInsights(); } });
+  return r;
+}
+$('gform').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const code=boxes.map(b=>b.value).join(''), slug=slugIn.value.trim().toLowerCase().replace(/^.*\/s\//,'').replace(/[^a-z0-9-]/g,'');
+  if(code.length<6||!slug) return;
+  $('gbtn').disabled=true; $('gmsg').className='gate-msg'; $('gmsg').textContent='Checking…';
+  const r=await openWith(slug, code);
+  if(r.ok) return;
+  boxes.forEach(b=>b.value=''); boxes[0].focus();
+  const c=$('code'); c.classList.remove('bad'); void c.offsetWidth; c.classList.add('bad');
+  if(r.locked){ $('gmsg').className='gate-msg block'; $('gmsg').innerHTML='<b>Editing is paused for this page.</b>Too many wrong codes. Try again in a few minutes.'; }
+  else { $('gmsg').className='gate-msg err'; $('gmsg').textContent=r.message||'That code doesn’t open this page.'; }
+  $('gtries').textContent=(r.tries_left!=null)?`${r.tries_left} ${r.tries_left===1?'try':'tries'} left`:'';
+  gateState();
+});
+function lock(){
+  store.del('spoken_code'); session={slug:'',code:''}; biz=null; document.body.classList.remove('open'); $('main').inert=true; setSheet(false);
+  boxes.forEach(b=>b.value=''); $('gmsg').className='gate-msg'; $('gmsg').textContent='';
+  $('gate').hidden=false; requestAnimationFrame(()=>$('gate').classList.remove('gone')); gateState(); setTimeout(()=>(slugIn.value?boxes[0]:slugIn).focus(),100);
+}
+$('lock').addEventListener('click',lock);
+$('gdemo').addEventListener('click',async()=>{ $('gbtn').disabled=true; $('gmsg').className='gate-msg'; $('gmsg').textContent='Opening the sample bakery…'; slugIn.value='rosa-demo'; [...'DEMO42'].forEach((c,i)=>boxes[i].value=c); const r=await openWith('rosa-demo','DEMO42'); if(!r.ok){ $('gmsg').className='gate-msg err'; $('gmsg').textContent=r.message||'The demo is unavailable right now.'; } gateState(); });
+
+/* ============ mobile sheet ============ */
+function setSheet(up){ $('aside').classList.toggle('up',up); $('scrimm').classList.toggle('on',up && mobileQ.matches); $('handle').setAttribute('aria-expanded',up); $('handle-act').textContent=up?'Close':'Open'; }
+$('handle').addEventListener('click',()=>setSheet(!$('aside').classList.contains('up')));
+$('scrimm').addEventListener('click',()=>setSheet(false));
+addEventListener('keydown',e=>{ if(e.key==='Escape') setSheet(false); });
+mobileQ.addEventListener('change',()=>setSheet(false));
+
+/* ============ refresh ============ */
+$('refresh').addEventListener('click',async()=>{ renderInsights('thinking'); const r=await api('insights',{force:true}); if(r.ok) insightsData=r.insights; renderInsights(); });
+
+gateState();
+(async()=>{
+  const sc=store.get('spoken_code'), ss=store.get('spoken_slug');
+  if(sc&&ss&&(!slugIn.value||slugIn.value===ss)){ const r=await openWith(ss,sc,true); if(r.ok) return; store.del('spoken_code'); }
+  setTimeout(()=>(slugIn.value?boxes[0]:slugIn).focus(),200);
+})();
+})();
+</script>
+</body>
+</html>
