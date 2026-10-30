@@ -151,7 +151,27 @@ base44/
     transcribeVoiceNote/          audio URL -> text
     siteStats/                    public counters for the landing page
   config.jsonc                    app configuration
+public/
+  home/index.html                 the landing page: scroll-driven WebGL film, GSAP + Lenis
+  home/owner.html                 the owner page: edit code gate, insights, inbox, undo
+  spoken/spoken-engine.js         the scene engine that draws each shop's site
+  spoken/spoken-engine.css        styles for all five themes
+  spoken/icons.js, art.json       object library used for hero scenes
+  spoken/art-ids.txt, prompt.txt  what the model may choose from, and how it is asked
+src/                              React app: routes, /s/:slug site page, recorder
+assets/hero.mp4                   the 3D hero render the landing film is built from
+scripts/make-frames.sh            turns hero.mp4 into the 525 film frames
 ```
+
+### Building the film frames
+
+The landing page plays a 48 fps film from 525 WebP frames, which are too large to keep in git. Rebuild them from the hero render (needs `ffmpeg` with WebP support, takes a few minutes):
+
+```bash
+./scripts/make-frames.sh   # writes public/home/f48b/f_000.webp ... f_524.webp
+```
+
+> The React scaffold that the Base44 template generates (`src/lib`, `src/components/ui`, Tailwind and ESLint config) is not tracked here. A fresh Base44 app provides it.
 
 ## Try it
 
