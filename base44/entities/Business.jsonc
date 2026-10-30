@@ -1,0 +1,112 @@
+{
+  "name": "Business",
+  "properties": {
+    "about": {
+      "description": "1-2 sentences",
+      "type": "string"
+    },
+    "business_name": {
+      "type": "string"
+    },
+    "category": {
+      "description": "2-4 words, e.g. Dog groomer",
+      "type": "string"
+    },
+    "edit_code": {
+      "description": "6 random uppercase letters/numbers, generated on creation",
+      "type": "string"
+    },
+    "hours": {
+      "type": "string"
+    },
+    "language": {
+      "description": "BCP-47 code of the language the owner spoke, e.g. en, pt, fr",
+      "type": "string"
+    },
+    "location": {
+      "type": "string"
+    },
+    "phone_or_contact": {
+      "type": "string"
+    },
+    "scene_spec": {
+      "description": "JSON string: {archetype, set_piece, objects[], palette[3], mood, kicker} that drives the hero scene",
+      "type": "string"
+    },
+    "services": {
+      "items": {
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "price": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "slug": {
+      "description": "Unique lowercase hyphenated slug, e.g. marcos-bike-shop",
+      "type": "string"
+    },
+    "source": {
+      "enum": [
+        "web",
+        "whatsapp"
+      ],
+      "type": "string"
+    },
+    "tagline": {
+      "description": "One line, max 80 characters",
+      "type": "string"
+    },
+    "theme": {
+      "default": "editorial",
+      "enum": [
+        "editorial",
+        "bold",
+        "craft",
+        "minimal",
+        "zine"
+      ],
+      "type": "string"
+    },
+    "tone": {
+      "enum": [
+        "friendly",
+        "premium",
+        "bold",
+        "calm"
+      ],
+      "type": "string"
+    },
+    "transcript": {
+      "description": "The original voice transcript",
+      "type": "string"
+    }
+  },
+  "required": [
+    "slug",
+    "business_name"
+  ],
+  "type": "object",
+  "rls": {
+    "read": {},
+    "create": {},
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
