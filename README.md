@@ -7,7 +7,11 @@
 **Record one voice note about your business. Get a real, designed website, in about a minute.**
 Then change anything on it by sending a text.
 
-[**Live demo →**](https://groovy-speak-build-grow.base44.app) &nbsp;·&nbsp; [Owner page demo](https://groovy-speak-build-grow.base44.app/home/owner.html) &nbsp;·&nbsp; [How it works](#how-it-works) &nbsp;·&nbsp; [Security](#security-and-trust-by-design)
+<img src="docs/images/banner.jpg" alt="Spoken: say it, and it's live" width="100%">
+
+<br>
+
+[**▶ Watch the walkthrough**](https://www.linkedin.com/posts/abhinav-awasthi-b15482265_base44challenge-base44challenge-activity-7520378198514147328-JZ6Y) &nbsp;·&nbsp; [**Live demo →**](https://groovy-speak-build-grow.base44.app) &nbsp;·&nbsp; [Owner page demo](https://groovy-speak-build-grow.base44.app/home/owner.html) &nbsp;·&nbsp; [How it works](#how-it-works) &nbsp;·&nbsp; [Security](#security-and-trust-by-design)
 
 ![React](https://img.shields.io/badge/React-18-61dafb?logo=react&logoColor=white)
 ![Vite](https://img.shields.io/badge/Vite-build-646cff?logo=vite&logoColor=white)
@@ -43,6 +47,15 @@ That sentence becomes a finished page: name, tagline, price list, hours, locatio
 | 📬 **A customer inbox** | The "Message us" form on every site lands in a private owner page. |
 | 🧠 **Weekly summary with one-tap fixes** | The owner page reads recent messages, explains what customers keep asking for, and suggests small changes you can apply in one tap. |
 | ↩️ **Undo, always** | Every change is logged with before and after values. The last one can be undone in a tap. |
+
+## Screenshots
+
+| | |
+|---|---|
+| ![The street the landing page scrolls through](docs/images/street.jpg) | ![The Spoken storefront at the end of the film](docs/images/storefront.jpg) |
+| *The landing page is a scroll-driven film: you walk down a street of shops.* | *Every shop on the street was opened by one voice note.* |
+| ![Send it on WhatsApp](docs/images/whatsapp.jpg) | ![The owner page with insights](docs/images/owner-page.jpg) |
+| *Create or edit a site from WhatsApp, with a QR code to start.* | *The owner page: weekly summary, one-tap suggestions, inbox, undo.* |
 
 ## How it works
 
